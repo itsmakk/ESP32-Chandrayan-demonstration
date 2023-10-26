@@ -1,0 +1,123 @@
+// ESP32 CHANDRATAN 3 DEMO ROCKET SIMULATION
+
+// Define the pins used
+#define TOGGLE_SWITCH_PIN 2
+#define ROCKET_MOTOR_FORWARD_PIN 12
+#define ROCKET_MOTOR_REVERSE_PIN 14
+#define RELAY_ORBITER_PIN 4
+#define RELAY_FOCUS1_PIN 27
+#define LANDER_MOTOR_FORWARD_PIN 32
+#define LANDER_MOTOR_REVERSE_PIN 33
+#define LED_PIN 19 
+
+// Define the delay times in milliseconds
+#define START_CHANDRAYAN_DELAY 10000       // 10 sec
+#define ROCKET_MOTOR_FORWARD_DELAY 76000   // 76 sec ROCKET UP
+#define RELAY_ORBITER_DELAY 60000          // 60 sec    
+#define LANDER_MOTOR_FORWARD_DELAY 39000   // 39 sec LANDER DOWN
+#define ROVER_OPERATION_DELAY 87000        // 87 sec FOR LANDER AND ROVER OPRERATION
+#define ROCKET_MOTOR_REVERSE_DELAY 58000   // 58 sec ROCKET DOWN
+#define LANDER_MOTOR_REVERSE_DELAY 102000  // 102 sec LANDER UP
+#define NEXT_CYCLE_DELAY 30000             // 30 sec DELAY FOR START / STOP CYCLE SAFELY
+#define COMMON_DELAY 10000                 // 10 sec
+
+// Define the number of cycles
+#define NUM_CYCLES 2
+
+// Global variables
+int cycleCounter = 0;
+bool automaticMode = true;
+
+// Setup function
+void setup() {
+  // Set the toggle switch pin as an input with a pull-up resistor
+  pinMode(TOGGLE_SWITCH_PIN, INPUT_PULLUP);
+
+  // Set the motor and relay pins as outputs
+  pinMode(ROCKET_MOTOR_FORWARD_PIN, OUTPUT);
+  pinMode(ROCKET_MOTOR_REVERSE_PIN, OUTPUT);
+  
+  pinMode(LANDER_MOTOR_FORWARD_PIN, OUTPUT);
+  pinMode(LANDER_MOTOR_REVERSE_PIN, OUTPUT);
+
+  pinMode(RELAY_ORBITER_PIN, OUTPUT);
+  pinMode(RELAY_FOCUS1_PIN, OUTPUT);
+  pinMode(LED_PIN, OUTPUT);
+
+
+  // Initially, turn off all motors and relays
+  digitalWrite(ROCKET_MOTOR_FORWARD_PIN, LOW);
+  digitalWrite(ROCKET_MOTOR_REVERSE_PIN, LOW);
+  digitalWrite(LANDER_MOTOR_FORWARD_PIN, LOW);
+  digitalWrite(LANDER_MOTOR_REVERSE_PIN, LOW);
+  digitalWrite(RELAY_ORBITER_PIN, HIGH);
+  digitalWrite(RELAY_FOCUS1_PIN, HIGH);
+  digitalWrite(LED_PIN, LOW);
+
+}
+
+// Loop function
+void loop() {
+  // Read the toggle switch pin
+  int toggleSwitchState = digitalRead(TOGGLE_SWITCH_PIN);
+
+  // If the toggle switch is on, enable manual mode
+  if (toggleSwitchState == HIGH) {
+    automaticMode = false; 
+  }
+
+  // If automatic mode is enabled, run the automatic Chandrayan cycle
+  if (automaticMode) {
+
+    // Start the Chandrayan cycle, LED Indicates cycle start stop safely
+    digitalWrite(LED_PIN, HIGH);
+    delay(NEXT_CYCLE_DELAY);
+    digitalWrite(LED_PIN, LOW);
+    digitalWrite(RELAY_FOCUS1_PIN, LOW);  // Turn ON FOGG
+    delay(START_CHANDRAYAN_DELAY);
+    digitalWrite(RELAY_FOCUS1_PIN, HIGH);  // Turn OFF FOGG
+
+    digitalWrite(ROCKET_MOTOR_FORWARD_PIN, HIGH);   // Turn on the rocket motor in the forward direction
+    delay(ROCKET_MOTOR_FORWARD_DELAY);
+    digitalWrite(ROCKET_MOTOR_FORWARD_PIN, LOW);  // Turn off the rocket motor
+    delay(COMMON_DELAY);
+
+    digitalWrite(RELAY_ORBITER_PIN, LOW);  //Turn on Orbiter relay
+    delay(RELAY_ORBITER_DELAY);
+    digitalWrite(RELAY_ORBITER_PIN, HIGH);  //Turn off Orbiter relay
+    delay(COMMON_DELAY);
+
+    digitalWrite(LANDER_MOTOR_FORWARD_PIN, HIGH);  //turn on the lander motor in the forward direction
+    delay(LANDER_MOTOR_FORWARD_DELAY);
+    digitalWrite(LANDER_MOTOR_FORWARD_PIN, LOW);  // Turn off the lander motor
+
+    delay(COMMON_DELAY);
+    delay(ROVER_OPERATION_DELAY);  // delay for the rover operation
+
+    digitalWrite(ROCKET_MOTOR_REVERSE_PIN, HIGH);  // Turn on the rocket motor in the reverse direction
+    delay(ROCKET_MOTOR_REVERSE_DELAY); 
+    digitalWrite(ROCKET_MOTOR_REVERSE_PIN, LOW);  // Turn off the rocket motor 
+    delay(COMMON_DELAY);
+
+    digitalWrite(LANDER_MOTOR_REVERSE_PIN, HIGH);  //Turn on the lander motor in the reverse direction
+    delay(LANDER_MOTOR_REVERSE_DELAY);
+    digitalWrite(LANDER_MOTOR_REVERSE_PIN, LOW);  // Turn off the lander motor and end the program
+    delay(2000);
+
+    // Increment the Chandrayan cycle counter
+    cycleCounter++;
+
+    // If the number of cycles has been reached, disable automatic mode
+    if (cycleCounter >= NUM_CYCLES) {
+      automaticMode = false;
+    }
+  } else {
+    // If manual mode is enabled, control the motors and relay individually
+    digitalWrite(ROCKET_MOTOR_FORWARD_PIN, digitalRead(ROCKET_MOTOR_FORWARD_PIN));
+    digitalWrite(ROCKET_MOTOR_REVERSE_PIN, digitalRead(ROCKET_MOTOR_REVERSE_PIN));
+    digitalWrite(RELAY_ORBITER_PIN, digitalRead(RELAY_ORBITER_PIN));
+    digitalWrite(RELAY_FOCUS1_PIN, digitalRead(RELAY_FOCUS1_PIN));
+    digitalWrite(LANDER_MOTOR_FORWARD_PIN, digitalRead(LANDER_MOTOR_FORWARD_PIN));
+    digitalWrite(LANDER_MOTOR_REVERSE_PIN, digitalRead(LANDER_MOTOR_REVERSE_PIN));
+  }
+}
